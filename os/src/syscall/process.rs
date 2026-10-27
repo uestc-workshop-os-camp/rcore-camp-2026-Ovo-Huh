@@ -40,25 +40,10 @@ pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize {
 
 // TODO: implement the syscall
 pub fn sys_trace(trace_request: usize, id: usize, data: usize) -> isize {
-    trace!("kernel: sys_trace");
-
     match trace_request {
-        0 => unsafe {
-            if id == 0 {
-                -1
-            } else {
-                id as *const u8 as *const u8;
-                *(id as *const u8) as isize
-            }
-        },
-        1 => unsafe {
-            if id == 0 {
-                -1
-            } else {
-                *(id as *mut u8) = data as u8;
-                0
-            }
-        },
+        0 => unsafe { *(id as *const u8) as isize },
+        1 => unsafe { *(id as *mut u8) = data as u8; 0 },
+        2 => crate::task::get_syscall_times(id) as isize,
         _ => -1,
     }
 }
