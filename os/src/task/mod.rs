@@ -176,7 +176,7 @@ pub fn add_syscall_times(syscall_id: usize) {
     inner.tasks[current].syscall_times[syscall_id] += 1;
 }
 
-/// =获取当前任务某个系统调用的次数
+///获取当前任务某个系统调用的次数
 pub fn get_syscall_times(syscall_id: usize) -> usize{
     let inner = TASK_MANAGER.inner.exclusive_access();
     let current = inner.current_task;
