@@ -14,7 +14,9 @@ mod switch;
 #[allow(clippy::module_inception)]
 mod task;
 
+
 use crate::loader::{get_app_data, get_num_app};
+use crate::mm::{MapPermission,VirtAddr};
 use crate::sync::UPSafeCell;
 use crate::trap::TrapContext;
 use alloc::vec::Vec;
@@ -152,6 +154,30 @@ impl TaskManager {
         } else {
             panic!("All applications completed!");
         }
+    }
+    /// 实现一个获取当前任务进程Memory_Set的公开函数，因为inner是私有的(不可行，因为UpSafeCell中取出来只有访问权，不能把tasks拿出)
+    /// 把整个方法移过来在内部实现接口，sys_mmap直接调用
+    pub fn insert_current_framed_area(&self,start_va:VirtAddr,end_va:VirtAddr,permission:MapPermission){
+        let mut inner = TASK_MANAGER.inner.exclusive_access();
+        let current_task = inner.current_task;
+        let memory_set = &mut inner.tasks[current_task].memory_set;
+        memory_set.insert_framed_area(start_va, end_va, permission);
+    }
+    ///同上
+    pub fn remove_current_area(&self, start: VirtAddr) -> bool {
+    let mut inner = self.inner.exclusive_access();
+    let current_task = inner.current_task;
+    inner.tasks[current_task]
+        .memory_set
+        .remove_area(start)
+    }
+    ///检查重叠区域的转发函数
+    pub fn is_current_area_overlap(&self,start: VirtAddr,end: VirtAddr) -> bool {
+        let inner = self.inner.exclusive_access();
+        let current_task = inner.current_task;
+        inner.tasks[current_task]
+        .memory_set
+        .is_area_overlap(start, end)
     }
 }
 

@@ -262,6 +262,24 @@ impl MemorySet {
             false
         }
     }
+    /// 实现unmap接口
+    pub fn remove_area(&mut self, start: VirtAddr) -> bool {
+        if let Some(index) = self.areas.iter().position(|area| area.vpn_range.get_start() == start.floor()) {
+            let mut area = self.areas.remove(index);
+            area.unmap(&mut self.page_table);
+            true
+        } else {false}
+    }
+    ///检查重叠区域
+    pub fn is_area_overlap(&self, start: VirtAddr, end: VirtAddr) -> bool {
+        let start_vpn = start.floor();
+        let end_vpn = end.ceil();
+
+        self.areas.iter().any(|area| {
+            start_vpn < area.vpn_range.get_end()
+                && area.vpn_range.get_start() < end_vpn
+        })
+    }
 }
 /// map area structure, controls a contiguous piece of virtual memory
 pub struct MapArea {
