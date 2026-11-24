@@ -1,6 +1,6 @@
 //! Process management syscalls
 use core;
-
+use crate::task::get_syscall_times;
 use crate::config::PAGE_SIZE;
 use crate::mm::{translated_byte_buffer, MapPermission, PageTable, VirtAddr};
 use crate::task::{change_program_brk, current_user_token, exit_current_and_run_next, suspend_current_and_run_next, TASK_MANAGER};
@@ -85,6 +85,7 @@ pub fn sys_trace(trace_request: usize, id: usize, data: usize) -> isize {
             bytes[offset] = data as u8; 
             0
         }
+        2 => get_syscall_times(id),
         _ => -1
     }
 }
